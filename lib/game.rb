@@ -1,15 +1,27 @@
 class Game
   include Helper
 
-  def initialize(mode)
+  def initialize(new_or_load, **params)
     # Might make more sense to purge dictionary of newlines rather than chomping
     @dictionary = File.readlines('./dictionary.txt')
-    @mode = mode
-    @word = word_select(@dictionary)
-    @display = Display.new(@word.length)
-    @chosen_letters = []
-    @wrong_guesses_allowed = @mode == "hard" ? @word.length + 5 : @word.length + 7
-    @wrong_guesses = 0
+    if new_or_load == "load_game"
+      params.each do |var, val|
+        self.instance_variable_set('@'+var.to_s, val)
+      end
+    else
+      @mode = mode_select
+      @word = word_select(@dictionary)
+      @display = Display.new(@word.length)
+      @chosen_letters = []
+      @guesses_allowed = @mode == "hard" ? @word.length + 5 : @word.length + 7
+      @guesses = 0
+    end
+  end
+
+  def mode_select
+    puts 'To play in easy mode, enter "easy".'
+    puts 'To play in hard mode, enter "hard".'
+    gets.chomp.downcase
   end
 
   def word_select dictionary
@@ -54,21 +66,21 @@ class Game
       @display.add_letter_to_display(@word, letter)
     else
       puts "Sorry. This letter is not part of the word."
-      @wrong_guesses += 1
-      puts "You have #{@wrong_guesses_allowed - @wrong_guesses} more guesses left before you are dead."
+      @guesses += 1
+      puts "You have #{@guesses_allowed - @guesses} more guesses left before you are dead."
     end
   end
 
   def save_game
     game_time = Time.now.strftime("%m_%d_%Y_%I_%M")
     filename = "./saved_games/#{game_time}.store"
-    saved_game = YAML::Store.new filename
+    saved_game = YAML::Store.new(filename)
     saved_game.transaction do
-      saved_game["word"] = @word
-      saved_game["display"] = @display
-      saved_game["chosen letters"] = @chosen_letters
-      saved_game["guesses allowed"] = @wrong_guesses_allowed
-      saved_game["guesses taken"] = @wrong_guesses
+      saved_game[:word] = @word
+      saved_game[:display] = @display
+      saved_game[:chosen_letters] = @chosen_letters
+      saved_game[:guesses_allowed] = @guesses_allowed
+      saved_game[:guesses_taken] = @guesses
     end
     puts "Game saved in the following file: #{filename}"
     exit_game
@@ -88,7 +100,7 @@ class Game
 
   def play_game
     puts "This word is #{@word.length} letters long."
-    until @wrong_guesses == @wrong_guesses_allowed || word_finished
+    until @guesses == @guesses_allowed || word_finished
       make_guess
       victory_check
     end

@@ -17,40 +17,55 @@ choice = ""
 def prompt
   puts 'To start a new game, enter "new".'
   puts 'To load an old game, enter "load".'
+  gets.chomp.downcase
 end
 
-def mode_select
-  puts 'To play in easy mode, enter "easy".'
-  puts 'To play in hard mode, enter "hard".'
-  gets.chomp.downcase
+def select_game
+  directory = "saved_games"
+  game_array = Dir.glob("#{directory}/*.*").each_with_index.map { |file, i| [i, file]}
+  game_array.map { |file| puts "#{file[0]}. #{file[1]}"}
+  puts "Choose a number to load a saved game:"
+  game_number = gets.chomp.to_i
+  return game_array.select { |file| file[0] == game_number }
+end
+
+def load_game(file)
+  params = Hash.new
+  puts "File name: #{file}"
+  file = YAML::Store.new(file) # Somehow, this retrieves the old file rather than making a new one (works for me!)
+  file.transaction do
+    params[:word] = file[:word]
+    params[:display] = file[:display]
+    params[:chosen_letters] = file[:chosen_letters]
+    params[:guesses_allowed] = file[:guesses_allowed]
+    params[:guesses_taken] = file[:guesses_taken]
+    puts "Parameters of loaded game: #{params}"
+  end
+  Game.new("load_game", params).play_game
+end
+
+def start_game
+  choice = prompt until choice == "new" || choice == "load"
+  if choice == 'new'
+    Game.new("new_game").play_game
+  elsif choice == 'load'
+    file_to_load = select_game[0][1]
+    load_game(file_to_load)
+  end
 end
 
 def play_again_offer
   puts 'Would you like to play again? Enter "yes" or "no".'
   choice = gets.chomp.downcase
-  if choice.downcase == "yes"
-    mode = mode_select
-    Game.new(mode).play_game
+  if choice == "yes"
+    start_game
+  else
+    Helper::exit_game
   end
 end
 
 # Flow
 
-until choice.downcase == "new" || choice.downcase == "load"
-  prompt
-  choice = gets.chomp
-end
-
-if choice.downcase == "new"
-  mode = mode_select
-  Game.new(mode).play_game
-elsif choice.downcase == "load"
-  directory = "./saved_games"
-  puts Dir.glob('#{directory}.{store}').join(",\n")
-  # Dir.glob(directory).length.times do |i|
-  #   puts "Game #{i}: "
-  # List all files from the saved game folder with a number
-  # Load whichever game matches the number the player gives
-end
+start_game
 
 play_again_offer

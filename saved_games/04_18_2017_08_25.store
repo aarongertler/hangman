@@ -1,0 +1,26 @@
+---
+:word: plucky
+:display: !ruby/object:Display
+  spaces:
+  - p
+  - l
+  - u
+  - c
+  - " __ "
+  - y
+:chosen_letters:
+- e
+- t
+- i
+- o
+- u
+- a
+- q
+- m
+- n
+- p
+- y
+- l
+- c
+:guesses_allowed: 11
+:guesses_taken: 8

@@ -1,0 +1,18 @@
+---
+:word: vizierial
+:display: !ruby/object:Display
+  spaces:
+  - " __ "
+  - " __ "
+  - " __ "
+  - " __ "
+  - e
+  - " __ "
+  - " __ "
+  - " __ "
+  - " __ "
+:chosen_letters:
+- t
+- e
+:guesses_allowed: 14
+:guesses_taken: 1
